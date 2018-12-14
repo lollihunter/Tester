@@ -20,19 +20,19 @@ def check(test, fname, num, TL):    try:
         result = launch(test, fname, TL)
         end = time.time()
     except subprocess.TimeoutExpired:
-        return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False
+        return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False, 'TLE'
     except Exception as e:
-        return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + f', 0 мс\n{e}', False
+        return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + f', 0 мс\n{e}', False, 'RE'
     
     else:
         
         correct_answer = open(test[:-3] + '.out').read().strip()
         if result == correct_answer:
-            return f'Тест {num} успешно пройден, {int(1000* (end - begin))} мс', True
+            return f'Тест {num} успешно пройден, {int(1000* (end - begin))} мс', True, 'AC'
         else:
             return f'''Неправильный ответ на тесте {num}, {int(1000* (end - begin))} мс
 Правильный ответ: {formats(correct_answer)}
-Вывод программы: {formats(result)}''', False
+Вывод программы: {formats(result)}''', False, 'WA'
 
 
 
@@ -68,39 +68,80 @@ class MyWidget(QMainWindow):
     def choose(self):
         pass
      
+     
+    def verdict(self, number_of_tests, number_of_passed_tests,
+                last_error, terminate_in_case_of_error):
+
+        if terminate_in_case_of_error:
+            
+            if number_of_tests == number_of_passed_tests:
+                text = "<span style=\" color: #00cc00;\">Полное решение</span>"
+                
+            else:
+                if last_error == 'TLE':
+                    text = f"<span style=\" color: #0000aa;\">Превышено ограничение времени на тесте {number_of_tests}</span>"
+                elif last_error == 'WA':
+                    text = f"<span style=\" color: #0000aa;\">Неправильный ответ на тесте {number_of_tests}</span>"
+                elif last_error == 'RE':
+                    text = f"<span style=\" color: #aa0000;\">Ошибка исполнения на тесте {number_of_tests}</span>"
         
+        else:
+            if number_of_tests == number_of_passed_tests:
+                text = f"<span style=\" color: #ff0000;\">Полное решение</span>"
+                
+            else:
+                text = f"<span style=\" color: #bbbb00;\">Частичное решение, пройдено {number_of_passed_tests} тестов из {number_of_tests}</span>"
+        
+        return text
+            
+    
+    def tester(self, path, system_path):
+        for test in path:
+            if test.endswith('.in'):
+                self.i += 1
+                
+                results = check(system_path + test, self.fname, self.i, self.time_limit)
+                res = results[0]
+                self.successful += results[1]
+                self.last_error = results[2]
+
+                text = self.logBox.toPlainText()
+                self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + res + '\n\n')
+                QApplication.processEvents()
+                
+                if not self.successful and self.stopiffailed.isChecked():
+                    break
+        assert self.i
+    
+      
     def run(self):
         
         self.logBox.setText('')
-        begin = time.time()
+        self.begin = time.time()
+        self.last_error = "AC"
         
         path = self.testdir.text() + '\\'
-        fname = self.choosefile.text()
-        print(os.listdir(path))
+        self.fname = self.choosefile.text()
         
         self.i = 0
         self.successful = 0
         self.time_limit = int(self.TL.text())
     
-        for test in os.listdir(path):
-            if test.endswith('.in'):
-                self.i += 1
-                
-                results = check(path + test, fname, self.i, self.time_limit)
-                res = results[0]
-                self.successful += results[1]
-
-                text = self.logBox.toPlainText()
-                self.logBox.append('\n' + f'{int(1000 * (time.time() - begin))}' + ' ' + res + '\n')
-                QApplication.processEvents()
-
-        
-        text = self.logBox.toPlainText()
-        self.logBox.append('\n' + f'{int(1000 * (time.time() - begin))}' + ' ' + 'Активные задачи выполнены')
-        
-        self.resBox.setText(f'''Вердикт тестирования:
-Пройдено {self.i} тестов за {int(1000 * (time.time() - begin))} мс, успешно {self.successful}
-Среднее время выполнения теста - {int(1000 * (time.time() - begin) / self.i)} мс''')
+        try:
+            self.tester(os.listdir(path), path)  
+        except AssertionError:
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' Директория {path} не содержит тестов\n\n')
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
+        except Exception:
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти директорию {path}\n\n')
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
+            self.resBox.setHtml(f'''Вердикт тестирования:<br><br>        
+            <span style=\" color: #cc0000;\">Некорректно установлены параметры тестирования</span>''')
+        else:
+            self.resBox.setHtml(f'''Вердикт тестирования:<br>        
+    Пройдено {self.i} тестов за {int(1000 * (time.time() - self.begin))} мс, успешно {self.successful}<br>
+    Среднее время выполнения теста - {(int(1000 * (time.time() - self.begin) / self.i)) if self.i else 0} мс<br><br>
+    {self.verdict(self.i, self.successful, self.last_error, self.stopiffailed.isChecked())}''')
 
 app = QApplication(sys.argv)
 ex = MyWidget()
