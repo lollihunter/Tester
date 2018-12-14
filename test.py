@@ -1,7 +1,7 @@
 import sys, os, subprocess, time
 from PyQt5 import uic
 import psutil
-from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser
+from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser, QTableWidgetItem
 
 
 def kill(proc_pid):
@@ -13,7 +13,6 @@ def kill(proc_pid):
 
 class DirNotFoundError(Exception):
     pass
-
 
 
 def launch(test, fname, TL):
@@ -39,17 +38,19 @@ def formats(string):
         return string
 
 
-def check(test, fname, num, TL):    try:
+def check(test, fname, num, TL):
+        try:
         begin = time.time()
         result = launch(test, fname, TL)
         end = time.time()
+        
     except TimeoutError:
         return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False, 'TLE'
+    
     except Exception as e:
         return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + f', 0 мс\n{e}', False, 'RE'
     
     else:
-        
         correct_answer = open(test[:-3] + '.out').read().strip()
         if result == correct_answer:
             return f'Тест {num} успешно пройден, {int(1000* (end - begin))} мс', True, 'AC'
@@ -68,9 +69,15 @@ class MyWidget(QMainWindow):
         super().__init__()
         uic.loadUi('tester.ui', self)
         self.launch.clicked.connect(self.run)
-        
+        self.setFixedSize(self.size())
+        self.choosefilebtn.clicked.connect(self.choose_file_to_check)
+        self.explorer.clicked.connect(self.choose_directory_with_tests)
         self.stdio.clicked.connect(self.fstdio)
         self.fileio.clicked.connect(self.ffileio)
+        
+        self.table.setItem(0, 0, QTableWidgetItem("Text in column 1"))
+        self.table.setItem(0, 1, QTableWidgetItem("Text in column 2"))
+        self.table.setItem(0, 2, QTableWidgetItem("Text in column 3"))        
     
     
     def fstdio(self):
@@ -89,9 +96,18 @@ class MyWidget(QMainWindow):
         self.outputfile.setEnabled(True)        
     
     
-    def choose(self):
-        pass
+    def choose_file_to_check(self):
+        fname = str(QFileDialog.getOpenFileName(self, "QFileDialog.getOpenFileName()",
+                                                "","Python Files (*.py)")[0])
+        if fname:
+            self.choosefile.setText(fname)
      
+     
+    def choose_directory_with_tests(self):
+        directory = str(QFileDialog.getExistingDirectory(self, "Choose Directory"))
+        if directory:
+            self.testdir.setText(directory)
+        
      
     def verdict(self, number_of_tests, number_of_passed_tests,
                 last_error, terminate_in_case_of_error):
@@ -146,7 +162,7 @@ class MyWidget(QMainWindow):
         self.begin = time.time()
         self.last_error = "AC"
         
-        self.path = self.testdir.text() + '\\'
+        self.path = self.testdir.text().replace('/', '\\') + '\\'
         self.fname = self.choosefile.text()
         
         self.i = 0
@@ -158,25 +174,30 @@ class MyWidget(QMainWindow):
                 raise FileNotFoundError
             if not os.path.isdir(self.path):
                 raise DirNotFoundError
-            self.tester(os.listdir(self.path), self.path)  
+            self.tester(os.listdir(self.path), self.path) 
+            
         except AssertionError:
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' Директория {self.path} не содержит тестов\n\n')
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
+            
         except DirNotFoundError:
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти директорию {self.path}\n\n')
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
             self.resBox.setHtml(f'''Вердикт тестирования:<br><br>        
             <span style=\" color: #cc0000;\">Некорректно установлены параметры тестирования</span>''')
+            
         except FileNotFoundError:
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти файл {self.fname}\n')
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
             self.resBox.setHtml(f'''Вердикт тестирования:<br><br>        
             <span style=\" color: #cc0000;\">Некорректно установлены параметры тестирования</span>''')
+            
         else:
             self.resBox.setHtml(f'''Вердикт тестирования:<br>        
     Пройдено {self.i} тестов за {int(1000 * (time.time() - self.begin))} мс, успешно {self.successful}<br>
     Среднее время выполнения теста - {(int(1000 * (time.time() - self.begin) / self.i)) if self.i else 0} мс<br><br>
     {self.verdict(self.i, self.successful, self.last_error, self.stopiffailed.isChecked())}''')
+            
         self.launch.setEnabled(True)
 
 app = QApplication(sys.argv)

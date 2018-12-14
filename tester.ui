@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>784</width>
+    <width>834</width>
     <height>633</height>
    </rect>
   </property>
@@ -38,7 +38,7 @@
      <rect>
       <x>330</x>
       <y>20</y>
-      <width>431</width>
+      <width>491</width>
       <height>251</height>
      </rect>
     </property>
@@ -82,8 +82,8 @@ p, li { white-space: pre-wrap; }
      <rect>
       <x>330</x>
       <y>290</y>
-      <width>431</width>
-      <height>247</height>
+      <width>491</width>
+      <height>252</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -232,9 +232,6 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QLineEdit" name="choosefile"/>
-     </item>
      <item row="5" column="0">
       <widget class="QRadioButton" name="stdio">
        <property name="text">
@@ -271,6 +268,20 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
+     <item row="0" column="2">
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <widget class="QLineEdit" name="choosefile"/>
+       </item>
+       <item>
+        <widget class="QPushButton" name="choosefilebtn">
+         <property name="text">
+          <string>Выбрать файл...</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget_2">
@@ -302,7 +313,7 @@ p, li { white-space: pre-wrap; }
      </item>
     </layout>
    </widget>
-   <widget class="QTableWidget" name="tableWidget">
+   <widget class="QTableWidget" name="table">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -311,23 +322,49 @@ p, li { white-space: pre-wrap; }
       <height>251</height>
      </rect>
     </property>
+    <property name="sizeAdjustPolicy">
+     <enum>QAbstractScrollArea::AdjustToContents</enum>
+    </property>
+    <property name="alternatingRowColors">
+     <bool>true</bool>
+    </property>
+    <attribute name="horizontalHeaderCascadingSectionResizes">
+     <bool>false</bool>
+    </attribute>
+    <column>
+     <property name="text">
+      <string>Тест</string>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Входные данные</string>
+     </property>
+    </column>
+    <column>
+     <property name="text">
+      <string>Выходные данные</string>
+     </property>
+    </column>
    </widget>
    <widget class="QWidget" name="gridLayoutWidget_2">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>280</y>
+      <y>270</y>
       <width>281</width>
-      <height>121</height>
+      <height>147</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="2" column="1">
-      <widget class="QPushButton" name="remtest">
-       <property name="text">
-        <string>Удалить тест</string>
-       </property>
-      </widget>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="testdir"/>
      </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_7">
@@ -338,34 +375,31 @@ x.in / x.out, где x - натуральное
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="2" column="0">
       <widget class="QPushButton" name="showtest">
        <property name="text">
         <string>Показать тесты</string>
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
+     <item row="1" column="1">
+      <widget class="QPushButton" name="remtest">
+       <property name="text">
+        <string>Удалить тест</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
       <widget class="QPushButton" name="addtest">
        <property name="text">
         <string>Добавить тест вручную!</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <widget class="QLineEdit" name="testdir"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_8">
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="1">
+     <item row="2" column="1">
       <widget class="QPushButton" name="explorer">
        <property name="text">
-        <string>Проводник</string>
+        <string>Выбрать папку...</string>
        </property>
       </widget>
      </item>
@@ -422,7 +456,7 @@ x.in / x.out, где x - натуральное
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>784</width>
+     <width>834</width>
      <height>21</height>
     </rect>
    </property>
