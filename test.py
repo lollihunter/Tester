@@ -3,7 +3,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser
 
 def launch(test, fname):
-    p = subprocess.Popen('type {} | python {}'.format(test, fname), stdout=subprocess.PIPE)
+    p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
     result = p.communicate()[0]      
     return result.decode('utf-8').strip().replace('\r', '')
 
@@ -15,11 +15,12 @@ def formats(string):
         return string
 
 
-def check(test, fname, num, TL):    print(num)
-    try:
+def check(test, fname, num, TL):    try:
         begin = time.time()
         result = launch(test, fname)
         end = time.time()
+    except TimeoutException:
+        return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False
     except Exception as e:
         return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + ', 0 мс', False
     
