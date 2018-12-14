@@ -1,11 +1,35 @@
 import sys, os, subprocess, time
 from PyQt5 import uic
+import psutil
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser
 
+
+def kill(proc_pid):
+    process = psutil.Process(proc_pid)
+    for proc in process.children(recursive=True):
+        proc.kill()
+    process.kill()
+
+
+class DirNotFoundError(Exception):
+    pass
+
+
+
 def launch(test, fname, TL):
-    p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
-    result = p.communicate(timeout=TL / 1000)[0]      
-    return result.decode('utf-8').strip().replace('\r', '')
+    
+    g = open('tmp.txt', 'w')
+    p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=g, stdin=subprocess.PIPE, shell=True, bufsize=-1)
+    
+    try:
+        p.communicate(timeout=TL/1000)
+    except:
+        kill(p.pid)
+        raise TimeoutError
+    
+    g.close()
+    result = open('tmp.txt').read()
+    return result.strip().replace('\r', '')
 
 
 def formats(string):
@@ -19,7 +43,7 @@ def check(test, fname, num, TL):    try:
         begin = time.time()
         result = launch(test, fname, TL)
         end = time.time()
-    except subprocess.TimeoutExpired:
+    except TimeoutError:
         return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False, 'TLE'
     except Exception as e:
         return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + f', 0 мс\n{e}', False, 'RE'
@@ -103,24 +127,26 @@ class MyWidget(QMainWindow):
                 results = check(system_path + test, self.fname, self.i, self.time_limit)
                 res = results[0]
                 self.successful += results[1]
+                self.check_for_error = results[1]
                 self.last_error = results[2]
 
                 text = self.logBox.toPlainText()
                 self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + res + '\n\n')
                 QApplication.processEvents()
                 
-                if not self.successful and self.stopiffailed.isChecked():
+                if not self.check_for_error and self.stopiffailed.isChecked():
                     break
         assert self.i
     
       
     def run(self):
         
+        self.launch.setEnabled(False)
         self.logBox.setText('')
         self.begin = time.time()
         self.last_error = "AC"
         
-        path = self.testdir.text() + '\\'
+        self.path = self.testdir.text() + '\\'
         self.fname = self.choosefile.text()
         
         self.i = 0
@@ -128,12 +154,21 @@ class MyWidget(QMainWindow):
         self.time_limit = int(self.TL.text())
     
         try:
-            self.tester(os.listdir(path), path)  
+            if not os.path.isfile(self.fname):
+                raise FileNotFoundError
+            if not os.path.isdir(self.path):
+                raise DirNotFoundError
+            self.tester(os.listdir(self.path), self.path)  
         except AssertionError:
-            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' Директория {path} не содержит тестов\n\n')
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' Директория {self.path} не содержит тестов\n\n')
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
-        except Exception:
-            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти директорию {path}\n\n')
+        except DirNotFoundError:
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти директорию {self.path}\n\n')
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
+            self.resBox.setHtml(f'''Вердикт тестирования:<br><br>        
+            <span style=\" color: #cc0000;\">Некорректно установлены параметры тестирования</span>''')
+        except FileNotFoundError:
+            self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' На диске не удалось найти файл {self.fname}\n')
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + 'Активные задачи выполнены\n\n')
             self.resBox.setHtml(f'''Вердикт тестирования:<br><br>        
             <span style=\" color: #cc0000;\">Некорректно установлены параметры тестирования</span>''')
@@ -142,6 +177,7 @@ class MyWidget(QMainWindow):
     Пройдено {self.i} тестов за {int(1000 * (time.time() - self.begin))} мс, успешно {self.successful}<br>
     Среднее время выполнения теста - {(int(1000 * (time.time() - self.begin) / self.i)) if self.i else 0} мс<br><br>
     {self.verdict(self.i, self.successful, self.last_error, self.stopiffailed.isChecked())}''')
+        self.launch.setEnabled(True)
 
 app = QApplication(sys.argv)
 ex = MyWidget()
