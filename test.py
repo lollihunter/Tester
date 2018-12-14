@@ -1,10 +1,10 @@
-import sys, os, subprocess, time, threading
+import sys, os, subprocess, time
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser
 
-def launch(test, fname):
+def launch(test, fname, TL):
     p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True)
-    result = p.communicate()[0]      
+    result = p.communicate(timeout=TL / 1000)[0]      
     return result.decode('utf-8').strip().replace('\r', '')
 
 
@@ -17,12 +17,12 @@ def formats(string):
 
 def check(test, fname, num, TL):    try:
         begin = time.time()
-        result = launch(test, fname)
+        result = launch(test, fname, TL)
         end = time.time()
-    except TimeoutException:
+    except subprocess.TimeoutExpired:
         return f'Превышено ограничение по времени на тесте {num}, {TL} мс', False
     except Exception as e:
-        return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + ', 0 мс', False
+        return f'Ошибка исполнения на тесте {num}: ' + type(e).__name__ + f', 0 мс\n{e}', False
     
     else:
         
