@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow">
+ <class>Tester</class>
+ <widget class="QMainWindow" name="Tester">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -19,7 +19,7 @@
      <rect>
       <x>420</x>
       <y>570</y>
-      <width>250</width>
+      <width>365</width>
       <height>31</height>
      </rect>
     </property>
@@ -94,45 +94,6 @@ p, li { white-space: pre-wrap; }
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="8" column="2">
-      <widget class="QLineEdit" name="checkerfile">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QRadioButton" name="simple_check">
-       <property name="font">
-        <font>
-         <family>Verdana</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Простой чекер</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">io</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="font">
-        <font>
-         <family>Verdana</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Адрес чекера</string>
-       </property>
-      </widget>
-     </item>
      <item row="4" column="0">
       <widget class="QLabel" name="label_4">
        <property name="font">
@@ -159,21 +120,8 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="1" column="1" rowspan="5">
-      <spacer name="verticalSpacer">
-       <property name="orientation">
-        <enum>Qt::Vertical</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>20</width>
-         <height>40</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="7" column="2">
-      <widget class="QRadioButton" name="advanced_check">
+     <item row="6" column="2">
+      <widget class="QLineEdit" name="exportfile">
        <property name="font">
         <font>
          <family>Verdana</family>
@@ -181,32 +129,46 @@ p, li { white-space: pre-wrap; }
         </font>
        </property>
        <property name="text">
-        <string>Продвинутый чекер (*.py)</string>
+        <string>check.log</string>
        </property>
-       <attribute name="buttonGroup">
-        <string notr="true">io</string>
-       </attribute>
       </widget>
      </item>
-     <item row="2" column="2">
-      <widget class="QSpinBox" name="ML">
+     <item row="5" column="2">
+      <widget class="QRadioButton" name="fileio">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
        <property name="font">
         <font>
          <family>Verdana</family>
          <pointsize>10</pointsize>
         </font>
        </property>
-       <property name="minimum">
-        <number>1024</number>
+       <property name="text">
+        <string>Ввод/вывод в файл</string>
        </property>
-       <property name="maximum">
-        <number>999999999</number>
+       <attribute name="buttonGroup">
+        <string notr="true">checker</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_3">
+       <property name="font">
+        <font>
+         <family>Verdana</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <property name="singleStep">
-        <number>1024</number>
+       <property name="text">
+        <string>Файл ввода информации</string>
        </property>
-       <property name="value">
-        <number>262144</number>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLineEdit" name="inputfile">
+       <property name="enabled">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -245,26 +207,6 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="font">
-        <font>
-         <family>Verdana</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Файл ввода информации</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="2">
-      <widget class="QLineEdit" name="outputfile">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_5">
        <property name="font">
@@ -275,13 +217,6 @@ p, li { white-space: pre-wrap; }
        </property>
        <property name="text">
         <string>Проверяемый скрипт (*.py)</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="2">
-      <widget class="QLineEdit" name="inputfile">
-       <property name="enabled">
-        <bool>false</bool>
        </property>
       </widget>
      </item>
@@ -298,58 +233,29 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="6" column="2">
-      <widget class="QLineEdit" name="exportfile">
+     <item row="2" column="2">
+      <widget class="QSpinBox" name="ML">
        <property name="font">
         <font>
          <family>Verdana</family>
          <pointsize>10</pointsize>
         </font>
        </property>
-       <property name="text">
-        <string>check.log</string>
+       <property name="minimum">
+        <number>1024</number>
+       </property>
+       <property name="maximum">
+        <number>999999999</number>
+       </property>
+       <property name="singleStep">
+        <number>1024</number>
+       </property>
+       <property name="value">
+        <number>262144</number>
        </property>
       </widget>
      </item>
-     <item row="5" column="0">
-      <widget class="QRadioButton" name="stdio">
-       <property name="font">
-        <font>
-         <family>Verdana</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Стандартный ввод/ вывод</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">checker</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="5" column="2">
-      <widget class="QRadioButton" name="fileio">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="font">
-        <font>
-         <family>Verdana</family>
-         <pointsize>10</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Ввод/вывод в файл</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">checker</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="9" column="0">
+     <item row="7" column="0">
       <widget class="QCheckBox" name="stopiffailed">
        <property name="font">
         <font>
@@ -375,6 +281,9 @@ p, li { white-space: pre-wrap; }
            <pointsize>10</pointsize>
           </font>
          </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
         </widget>
        </item>
        <item>
@@ -391,6 +300,45 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
       </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QRadioButton" name="stdio">
+       <property name="font">
+        <font>
+         <family>Verdana</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Стандартный ввод/ вывод</string>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+       <attribute name="buttonGroup">
+        <string notr="true">checker</string>
+       </attribute>
+      </widget>
+     </item>
+     <item row="4" column="2">
+      <widget class="QLineEdit" name="outputfile">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1" rowspan="5">
+      <spacer name="verticalSpacer">
+       <property name="orientation">
+        <enum>Qt::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
      </item>
     </layout>
    </widget>
@@ -512,6 +460,9 @@ x.in / x.out, где x - натуральное
          <pointsize>10</pointsize>
         </font>
        </property>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="1" column="1">
@@ -558,11 +509,11 @@ x.in / x.out, где x - натуральное
       </layout>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="lineEdit"/>
+      <widget class="QLineEdit" name="delimiter"/>
      </item>
     </layout>
    </widget>
-   <widget class="QListWidget" name="listWidget">
+   <widget class="QListWidget" name="funclist">
     <property name="enabled">
      <bool>false</bool>
     </property>
@@ -573,6 +524,12 @@ x.in / x.out, где x - натуральное
       <width>351</width>
       <height>101</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Verdana</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QWidget" name="horizontalLayoutWidget_3">
@@ -634,7 +591,7 @@ x.in / x.out, где x - натуральное
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="loadfuncs">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -650,7 +607,7 @@ x.in / x.out, где x - натуральное
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="pushButton_3">
+      <widget class="QPushButton" name="choosefuncs">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -704,10 +661,24 @@ x.in / x.out, где x - натуральное
     </property>
     <layout class="QGridLayout" name="gridLayout_3">
      <item row="1" column="0">
-      <widget class="QPlainTextEdit" name="inpdata"/>
+      <widget class="QPlainTextEdit" name="inpdata">
+       <property name="font">
+        <font>
+         <family>Verdana</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+      </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QPlainTextEdit" name="outdata"/>
+      <widget class="QPlainTextEdit" name="outdata">
+       <property name="font">
+        <font>
+         <family>Verdana</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
+      </widget>
      </item>
      <item row="0" column="1">
       <widget class="QLabel" name="label_8">
