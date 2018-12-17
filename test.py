@@ -1,5 +1,5 @@
 import sys, os, subprocess, time
-from PyQt5 import uic
+from PyQt5 import uic, QtWidgets
 import psutil
 from PyQt5.QtWidgets import QApplication, QWidget, QMainWindow, QFileDialog, QTextBrowser, QTableWidgetItem
 
@@ -15,10 +15,10 @@ class DirNotFoundError(Exception):
     pass
 
 
-def launch(test, fname, TL):
+def launch(test, fname, TL, stdinput=subprocess.PIPE, stdoutput='tmp.txt'):
     
-    g = open('tmp.txt', 'w')
-    p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=g, stdin=subprocess.PIPE, shell=True, bufsize=-1)
+    g = open(stdoutput, 'w')
+    p = subprocess.Popen(['type', test, '|',  'python', fname], stdout=g, stdin=stdinput, shell=True, bufsize=-1)
     
     try:
         p.communicate(timeout=TL/1000)
@@ -31,9 +31,9 @@ def launch(test, fname, TL):
     return result.strip().replace('\r', '')
 
 
-def formats(string):
-    if len(string) > 200:
-        return string[:200] + '... (answer too long to be displayed fully)'
+def formats(string, length, long=True):
+    if len(string) > length:
+        return string[:length] + '...' + ' (answer too long to be displayed fully)' * long
     else:
         return string
 
@@ -56,8 +56,8 @@ def check(test, fname, num, TL):
             return f'Тест {num} успешно пройден, {int(1000* (end - begin))} мс', True, 'AC'
         else:
             return f'''Неправильный ответ на тесте {num}, {int(1000* (end - begin))} мс
-Правильный ответ: {formats(correct_answer)}
-Вывод программы: {formats(result)}''', False, 'WA'
+Правильный ответ: {formats(correct_answer, 200)}
+Вывод программы: {formats(result, 200)}''', False, 'WA'
 
 
 
@@ -71,13 +71,20 @@ class MyWidget(QMainWindow):
         self.launch.clicked.connect(self.run)
         self.setFixedSize(self.size())
         self.choosefilebtn.clicked.connect(self.choose_file_to_check)
+        self.addtest.clicked.connect(self.add_test)
         self.explorer.clicked.connect(self.choose_directory_with_tests)
         self.stdio.clicked.connect(self.fstdio)
         self.fileio.clicked.connect(self.ffileio)
+        self.showtest.clicked.connect(self.visualise_tests)
+        self.remtest.clicked.connect(self.delete_tests)
+        self.edit.clicked.connect(self.edit_tests)
+        self.delim.clicked.connect(self.custom_delim)
+        self.delimit = ';'
         
-        self.table.setItem(0, 0, QTableWidgetItem("Text in column 1"))
-        self.table.setItem(0, 1, QTableWidgetItem("Text in column 2"))
-        self.table.setItem(0, 2, QTableWidgetItem("Text in column 3"))        
+        header = self.table.horizontalHeader()       
+        header.setSectionResizeMode(0, QtWidgets.QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)        
     
     
     def fstdio(self):
@@ -101,6 +108,109 @@ class MyWidget(QMainWindow):
                                                 "","Python Files (*.py)")[0])
         if fname:
             self.choosefile.setText(fname)
+    
+    def get_last(self, path):
+        files = list(filter(lambda x: x[-3:] == '.in', sorted(os.listdir(path))))[-1][:-3]
+        if not files[-1].isdigit() or os.path.isfile(path + files[:-1] + 
+                                                str(int(files[-1]) + 1) + '.in'):
+            return files + '1' 
+        return files[:-1] + str(int(files[-1]) + 1)
+    
+    
+    def add_test(self):
+        
+        self.infile = self.inpdata.toPlainText()
+        self.outfile = self.outdata.toPlainText()
+        
+        try:
+            self.path = self.testdir.text().replace('/', '\\') + '\\'
+            name = self.get_last(self.path)
+            
+            f = open(self.path + name + '.in', 'w')
+            f.write(self.infile)
+            
+            g = open(self.path + name + '.out', 'w')
+            g.write(self.outfile)
+            
+            f.close(); g.close();
+        except Exception:
+            self.logBox.append(f'0 Не удалось добавить тест по указанному адресу, отказано в доступе\n\n')
+        else:
+            self.visualise_tests()
+            self.logBox.append(f'0 Добавлен тест по адресу {self.path + name} (-.in + -.out) успешно\n\n')
+        
+    
+    def write_log(self, write_to_file, file, text):
+        self.logBox.append(text)
+        f = open(file, 'a')
+        f.write(text)
+    
+    
+    def delete_tests(self):
+        self.path = self.testdir.text().replace('/', '\\') + '\\'            
+        indexes = self.table.selectionModel().selectedRows()
+        print(indexes)
+        for index in indexes:
+            file = self.table.item(index.row(), 0).text()[:-8]
+            try:
+                os.remove(self.path + file + '.in')
+                os.remove(self.path + file + '.out')
+            except Exception:
+                self.logBox.append('0 Не удалось удалить один из файлов теста(-ов)\n\n')
+            else:
+                self.logBox.append(f'0 Успешно удалён тест {self.path + file} (.in/.out)\n\n')
+        self.visualise_tests()
+        
+        
+    def edit_tests(self):
+        self.path = self.testdir.text().replace('/', '\\') + '\\'            
+        indexes = self.table.selectionModel().selectedRows()
+
+        for index in indexes:
+            file = self.table.item(index.row(), 0).text()[:-8]
+            try:
+                f = open(self.path + file + '.in', 'w')
+                g = open(self.path + file + '.out', 'w')
+                
+                f.write(self.inpdata.toPlainText())
+                g.write(self.outdata.toPlainText())
+                
+                f.close()
+                g.close()
+                
+            except Exception:
+                self.logBox.append('0 Не удалось изменить один из файлов теста(-ов)\n\n')
+            
+            else:
+                self.logBox.append(f'0 Успешно изменен тест {self.path + file} (.in/.out)\n\n')
+        
+        self.visualise_tests()
+        
+        
+    def visualise_tests(self):
+        self.table.setRowCount(0);        
+        self.path = self.testdir.text().replace('/', '\\') + '\\'    
+        for file in os.listdir(self.path):
+            if file.endswith('.in'):
+                try:
+                    f = open(self.path + file).read()
+                    g = open(self.path + file[:-3] + '.out').read()
+                    
+                except Exception:
+                    self.logBox.append(f'0 Не удалось отобразить один из тестов в директории {self.path}')
+                    continue
+                
+                else:
+                    rowPosition = self.table.rowCount()
+                    self.table.insertRow(rowPosition)        
+                    self.table.setItem(rowPosition, 0, QTableWidgetItem(file + '/.out'))
+                    self.table.setItem(rowPosition, 1, QTableWidgetItem(formats(f, 15, long=False)))
+                    self.table.setItem(rowPosition, 2, QTableWidgetItem(formats(g, 15, long=False)))                    
+
+    
+            
+    def unittest(self):
+        pass
      
      
     def choose_directory_with_tests(self):
@@ -115,7 +225,7 @@ class MyWidget(QMainWindow):
         if terminate_in_case_of_error:
             
             if number_of_tests == number_of_passed_tests:
-                text = "<span style=\" color: #00cc00;\">Полное решение</span>"
+                text = "<span style=\" color: #009900;\"><b>Полное решение</b></span>"
                 
             else:
                 if last_error == 'TLE':
@@ -127,15 +237,16 @@ class MyWidget(QMainWindow):
         
         else:
             if number_of_tests == number_of_passed_tests:
-                text = f"<span style=\" color: #ff0000;\">Полное решение</span>"
+                text = f"<span style=\" color: #009900;\"><b>Полное решение</b></span>"
                 
             else:
-                text = f"<span style=\" color: #bbbb00;\">Частичное решение, пройдено {number_of_passed_tests} тестов из {number_of_tests}</span>"
+                text = f"<span style=\" color: #999900;\">Частичное решение, пройдено {number_of_passed_tests} тестов из {number_of_tests}</span>"
         
         return text
             
     
     def tester(self, path, system_path):
+        
         for test in path:
             if test.endswith('.in'):
                 self.i += 1
@@ -148,11 +259,27 @@ class MyWidget(QMainWindow):
 
                 text = self.logBox.toPlainText()
                 self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + ' ' + res + '\n\n')
+                
+                if self.stopiffailed.isChecked() and not self.check_for_error:
+                    if self.last_error == 'WA':
+                        self.status.setText(f"Статус: <span style=\" color: #0000aa;\">Неправильный ответ на тесте {self.i}</span>")
+                    elif self.last_error == 'TLE':
+                        self.status.setText(f"Статус: <span style=\" color: #0000aa;\">Превышено ограничение времени на тесте {self.i}</span>")
+                    else:
+                        self.status.setText(f"Статус: <span style=\" color: #0000aa;\">Ошибка исполнения на тесте {self.i}</span>")
+                
+                else:
+                    self.status.setText(f"Статус: <span style=\" color: #747474;\">Выполняется на тесте {self.i}</span>")
+                
                 QApplication.processEvents()
                 
                 if not self.check_for_error and self.stopiffailed.isChecked():
                     break
         assert self.i
+        if self.i == self.successful:
+            self.status.setText(f"Статус:<span style=\" color: #009900;\"><b> Полное решение</span></b>")
+        elif not self.stopiffailed.isChecked():
+            self.status.setText(f"Статус:<span style=\" color: #999900;\"><b> Частичное решение</span></b>")
     
       
     def run(self):
@@ -174,7 +301,7 @@ class MyWidget(QMainWindow):
                 raise FileNotFoundError
             if not os.path.isdir(self.path):
                 raise DirNotFoundError
-            self.tester(os.listdir(self.path), self.path) 
+            self.tester(sorted(os.listdir(self.path)), self.path) 
             
         except AssertionError:
             self.logBox.append(f'{int(1000 * (time.time() - self.begin))}' + f' Директория {self.path} не содержит тестов\n\n')
