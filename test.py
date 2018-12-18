@@ -2,6 +2,7 @@ import sys
 import os
 import inspect
 import time
+import ui
 import subprocess
 import threading
 import importlib
@@ -113,7 +114,7 @@ def check(test, fname, num, TL, delim=';', func='', reg=True):
 Вывод программы: {s}''', False, 'WA'
 
 
-class MyWidget(QMainWindow):
+class MyWidget(QMainWindow, ui.Ui_Tester):
     
     
     def __init__(self):
@@ -121,7 +122,7 @@ class MyWidget(QMainWindow):
         self.std = True
         super().__init__()
         
-        uic.loadUi('tester.ui', self)
+        self.setupUi(self)
         self.launch.clicked.connect(self.run)
         self.setFixedSize(self.size())
         self.choosefilebtn.clicked.connect(self.choose_file_to_check)
