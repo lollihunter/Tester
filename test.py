@@ -430,7 +430,7 @@ class MyWidget(QMainWindow, ui.Ui_Tester):
         elif not self.stopiffailed.isChecked() and self.regularTest.isChecked():
             self.status.setText(f"Статус:<span style=\" color: #999900;\"><b> Частичное решение</span></b>")
             
-        else:
+        elif not self.stopiffailed.isChecked():
             self.status.setText(f"Статус:<span style=\" color: #999900;\"><b> Частичная работоспособность</span></b>")
 
       
